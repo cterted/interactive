@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>目标分解图工具 - ECharts</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">目标分解图工具</div>
+      <div class="toolbar">
+        <button id="btnAddNode" title="添加一个节点">添加节点</button>
+        <button id="btnDeleteSelected" title="删除选中的节点/连线">删除所选</button>
+        <button id="btnConnectMode" title="点击两个节点以建立连线">连接模式</button>
+        <span class="divider"></span>
+        <button id="btnSave" title="保存到本地">保存</button>
+        <button id="btnLoad" title="从本地加载">加载</button>
+        <button id="btnExport" title="导出为JSON文件">导出JSON</button>
+        <label for="fileImport" class="import-label" title="从JSON导入">导入JSON</label>
+        <input id="fileImport" type="file" accept="application/json" style="display:none" />
+        <span class="divider"></span>
+        <button id="btnTreeView" title="将当前图以树形展示">树视图</button>
+        <button id="btnBackToGraph" title="回到可编辑图" style="display:none">返回图</button>
+      </div>
+      <div class="status">
+        <span id="statusText">模式：图编辑</span>
+      </div>
+    </header>
+
+    <main class="app">
+      <section class="canvas">
+        <div id="chart" aria-label="ECharts 画布" role="application"></div>
+      </section>
+      <aside class="sidepanel" id="sidePanel">
+        <div class="panel-section">
+          <h3>所选元素</h3>
+          <div id="selectionEmpty">未选择节点或连线</div>
+
+          <div id="nodeEditor" class="editor" style="display:none">
+            <div class="row"><label>ID</label><span id="nodeId"></span></div>
+            <div class="row"><label>名称</label><input id="nodeName" type="text" placeholder="节点名称" /></div>
+            <div class="row"><label>类别</label>
+              <select id="nodeCategory">
+                <option value="目标">目标</option>
+                <option value="子目标">子目标</option>
+                <option value="任务">任务</option>
+                <option value="页面">页面</option>
+                <option value="其他">其他</option>
+              </select>
+            </div>
+            <div class="row">
+              <label>坐标</label>
+              <input id="nodeX" type="number" step="1" />
+              <input id="nodeY" type="number" step="1" />
+            </div>
+            <div class="row gap">
+              <button id="btnUpdateNode">更新节点</button>
+              <button id="btnSetTreeRoot">设为树根</button>
+            </div>
+          </div>
+
+          <div id="edgeEditor" class="editor" style="display:none">
+            <div class="row"><label>ID</label><span id="edgeId"></span></div>
+            <div class="row"><label>来源 → 目标</label><span id="edgeEnds"></span></div>
+            <div class="row"><label>标签</label><input id="edgeLabel" type="text" placeholder="例如：跳转" /></div>
+            <div class="row gap">
+              <button id="btnUpdateEdge">更新连线</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <h3>说明</h3>
+          <ul class="help">
+            <li>拖动节点可调整位置；滚轮缩放，拖动画布平移</li>
+            <li>连接模式：依次点击两个节点创建有向连线</li>
+            <li>选择连线后按 删除键 或“删除所选”可删除</li>
+            <li>树视图用于展示，不影响原图结构</li>
+          </ul>
+        </div>
+      </aside>
+    </main>
+
+    <script src="./main.js"></script>
+  </body>
+</html>
