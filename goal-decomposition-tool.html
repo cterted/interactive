@@ -430,6 +430,14 @@
             updateChart();
         }
 
+        // 类别索引映射
+        const categoryIndexMap = {
+            'goal': 0,
+            'task': 1,
+            'milestone': 2,
+            'resource': 3
+        };
+
         // 更新图表
         function updateChart() {
             const option = {
@@ -460,6 +468,7 @@
                         layout: currentLayout,
                         data: graphData.nodes.map(node => ({
                             ...node,
+                            category: categoryIndexMap[node.category],
                             symbolSize: node.value || 50,
                             itemStyle: {
                                 color: categoryConfig[node.category].color
@@ -483,15 +492,19 @@
                             }
                         })),
                         links: graphData.links.map(link => ({
-                            ...link,
+                            source: link.source,
+                            target: link.target,
+                            value: link.label || '',
                             lineStyle: {
                                 color: '#999',
                                 width: 2,
                                 curveness: 0.2
                             },
                             label: {
-                                show: true,
-                                formatter: '{c}',
+                                show: !!link.label,
+                                formatter: function(params) {
+                                    return params.value || '';
+                                },
                                 fontSize: 10
                             },
                             emphasis: {
@@ -562,8 +575,12 @@
             chartInstance.off('click');
             chartInstance.on('click', function(params) {
                 if (params.dataType === 'node') {
-                    selectedNode = params.data;
-                    showToast(`已选择节点: ${params.data.name}`);
+                    // Find original node from graphData
+                    const originalNode = graphData.nodes.find(n => n.id === params.data.id);
+                    if (originalNode) {
+                        selectedNode = originalNode;
+                        showToast(`已选择节点: ${params.data.name}`);
+                    }
                 }
             });
         }
@@ -576,6 +593,7 @@
             // Create node map
             data.nodes.forEach(node => {
                 nodeMap[node.id] = {
+                    id: node.id,
                     name: node.name,
                     value: node.value,
                     category: node.category,
@@ -606,6 +624,7 @@
             // If multiple roots, create a virtual root
             if (rootNodes.length > 1) {
                 return {
+                    id: 'virtual-root',
                     name: '根节点',
                     children: rootNodes,
                     itemStyle: { color: '#999' }
@@ -613,7 +632,7 @@
             } else if (rootNodes.length === 1) {
                 return rootNodes[0];
             } else {
-                return { name: '空', children: [] };
+                return { id: 'empty', name: '空', children: [] };
             }
         }
 
