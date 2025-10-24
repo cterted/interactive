@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>目标分解科研工具 - ECharts</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: 20px;
+            gap: 15px;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            padding-right: 15px;
+            border-right: 2px solid #e0e0e0;
+        }
+
+        .btn-group:last-child {
+            border-right: none;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        button.success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        button.danger {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .chart-container {
+            flex: 1;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        #chart {
+            width: 100%;
+            height: 100%;
+        }
+
+        .mode-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #f0f0f0;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+        }
+
+        .mode-indicator .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #667eea;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 25px;
+        }
+
+        .info-panel {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            max-width: 250px;
+            display: none;
+        }
+
+        .info-panel h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 18px;
+        }
+
+        .info-panel p {
+            margin-bottom: 10px;
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            display: none;
+            z-index: 2000;
+            animation: fadeInUp 0.3s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translate(-50%, 20px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 目标分解科研工具</h1>
+            <div class="toolbar">
+                <div class="btn-group">
+                    <button onclick="addNode()" class="success">➕ 添加节点</button>
+                    <button onclick="deleteSelectedNode()" class="danger">🗑️ 删除节点</button>
+                    <button onclick="editSelectedNode()" class="secondary">✏️ 编辑节点</button>
+                </div>
+                <div class="btn-group">
+                    <button onclick="addLink()" class="secondary">🔗 添加连接</button>
+                    <button onclick="deleteLink()" class="danger">✂️ 删除连接</button>
+                </div>
+                <div class="btn-group">
+                    <button onclick="toggleLayout()">🔄 切换布局</button>
+                    <span class="mode-indicator">
+                        <span class="dot"></span>
+                        <span id="layoutMode">图结构</span>
+                    </span>
+                </div>
+                <div class="btn-group">
+                    <button onclick="saveData()" class="success">💾 保存</button>
+                    <button onclick="loadData()">📂 加载</button>
+                    <button onclick="exportImage()">📸 导出图片</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <div id="chart"></div>
+        </div>
+    </div>
+
+    <!-- Add Node Modal -->
+    <div id="addNodeModal" class="modal">
+        <div class="modal-content">
+            <h2>添加新节点</h2>
+            <div class="form-group">
+                <label>节点名称</label>
+                <input type="text" id="nodeName" placeholder="输入节点名称">
+            </div>
+            <div class="form-group">
+                <label>节点类型</label>
+                <select id="nodeCategory">
+                    <option value="goal">目标</option>
+                    <option value="task">任务</option>
+                    <option value="milestone">里程碑</option>
+                    <option value="resource">资源</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>描述</label>
+                <textarea id="nodeDesc" rows="3" placeholder="输入节点描述（可选）"></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button onclick="closeModal('addNodeModal')">取消</button>
+                <button onclick="confirmAddNode()" class="success">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Node Modal -->
+    <div id="editNodeModal" class="modal">
+        <div class="modal-content">
+            <h2>编辑节点</h2>
+            <div class="form-group">
+                <label>节点名称</label>
+                <input type="text" id="editNodeName" placeholder="输入节点名称">
+            </div>
+            <div class="form-group">
+                <label>节点类型</label>
+                <select id="editNodeCategory">
+                    <option value="goal">目标</option>
+                    <option value="task">任务</option>
+                    <option value="milestone">里程碑</option>
+                    <option value="resource">资源</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>描述</label>
+                <textarea id="editNodeDesc" rows="3" placeholder="输入节点描述（可选）"></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button onclick="closeModal('editNodeModal')">取消</button>
+                <button onclick="confirmEditNode()" class="success">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Link Modal -->
+    <div id="addLinkModal" class="modal">
+        <div class="modal-content">
+            <h2>添加连接</h2>
+            <div class="form-group">
+                <label>源节点</label>
+                <select id="linkSource"></select>
+            </div>
+            <div class="form-group">
+                <label>目标节点</label>
+                <select id="linkTarget"></select>
+            </div>
+            <div class="form-group">
+                <label>关系描述</label>
+                <input type="text" id="linkLabel" placeholder="例如：依赖、包含、跳转等（可选）">
+            </div>
+            <div class="modal-buttons">
+                <button onclick="closeModal('addLinkModal')">取消</button>
+                <button onclick="confirmAddLink()" class="success">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Link Modal -->
+    <div id="deleteLinkModal" class="modal">
+        <div class="modal-content">
+            <h2>删除连接</h2>
+            <div class="form-group">
+                <label>选择要删除的连接</label>
+                <select id="linkToDelete" size="5" style="height: 150px;"></select>
+            </div>
+            <div class="modal-buttons">
+                <button onclick="closeModal('deleteLinkModal')">取消</button>
+                <button onclick="confirmDeleteLink()" class="danger">删除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // 初始化数据
+        let chartInstance = null;
+        let currentLayout = 'force'; // 'force' or 'tree'
+        let selectedNode = null;
+        let graphData = {
+            nodes: [
+                { id: '1', name: '主目标', category: 'goal', value: 100, x: 300, y: 200, desc: '项目的主要目标' },
+                { id: '2', name: '子任务A', category: 'task', value: 50, x: 150, y: 300, desc: '第一个子任务' },
+                { id: '3', name: '子任务B', category: 'task', value: 50, x: 450, y: 300, desc: '第二个子任务' },
+                { id: '4', name: '里程碑1', category: 'milestone', value: 30, x: 150, y: 400, desc: '第一个里程碑' },
+                { id: '5', name: '资源1', category: 'resource', value: 20, x: 450, y: 400, desc: '所需资源' }
+            ],
+            links: [
+                { source: '1', target: '2', label: '分解' },
+                { source: '1', target: '3', label: '分解' },
+                { source: '2', target: '4', label: '依赖' },
+                { source: '3', target: '5', label: '需要' }
+            ]
+        };
+
+        // 节点类型配置
+        const categoryConfig = {
+            goal: { color: '#667eea', symbol: 'circle' },
+            task: { color: '#4facfe', symbol: 'rect' },
+            milestone: { color: '#f093fb', symbol: 'diamond' },
+            resource: { color: '#43e97b', symbol: 'triangle' }
+        };
+
+        // 初始化图表
+        function initChart() {
+            const chartDom = document.getElementById('chart');
+            chartInstance = echarts.init(chartDom);
+            updateChart();
+        }
+
+        // 更新图表
+        function updateChart() {
+            const option = {
+                tooltip: {
+                    formatter: function(params) {
+                        if (params.dataType === 'node') {
+                            return `<strong>${params.data.name}</strong><br/>
+                                    类型: ${getCategoryName(params.data.category)}<br/>
+                                    ${params.data.desc ? '描述: ' + params.data.desc : ''}`;
+                        } else if (params.dataType === 'edge') {
+                            return `${params.data.source} → ${params.data.target}<br/>
+                                    ${params.data.label || ''}`;
+                        }
+                    }
+                },
+                legend: [{
+                    data: ['目标', '任务', '里程碑', '资源'],
+                    orient: 'vertical',
+                    left: 10,
+                    top: 20,
+                    textStyle: {
+                        fontSize: 14
+                    }
+                }],
+                series: [
+                    {
+                        type: 'graph',
+                        layout: currentLayout,
+                        data: graphData.nodes.map(node => ({
+                            ...node,
+                            symbolSize: node.value || 50,
+                            itemStyle: {
+                                color: categoryConfig[node.category].color
+                            },
+                            label: {
+                                show: true,
+                                position: 'inside',
+                                formatter: '{b}',
+                                fontSize: 12,
+                                color: '#fff',
+                                fontWeight: 'bold'
+                            },
+                            emphasis: {
+                                focus: 'adjacency',
+                                itemStyle: {
+                                    borderWidth: 3,
+                                    borderColor: '#fff',
+                                    shadowBlur: 10,
+                                    shadowColor: categoryConfig[node.category].color
+                                }
+                            }
+                        })),
+                        links: graphData.links.map(link => ({
+                            ...link,
+                            lineStyle: {
+                                color: '#999',
+                                width: 2,
+                                curveness: 0.2
+                            },
+                            label: {
+                                show: true,
+                                formatter: '{c}',
+                                fontSize: 10
+                            },
+                            emphasis: {
+                                lineStyle: {
+                                    width: 4,
+                                    color: '#667eea'
+                                }
+                            }
+                        })),
+                        categories: [
+                            { name: '目标', itemStyle: { color: categoryConfig.goal.color } },
+                            { name: '任务', itemStyle: { color: categoryConfig.task.color } },
+                            { name: '里程碑', itemStyle: { color: categoryConfig.milestone.color } },
+                            { name: '资源', itemStyle: { color: categoryConfig.resource.color } }
+                        ],
+                        roam: true,
+                        draggable: true,
+                        force: currentLayout === 'force' ? {
+                            repulsion: 200,
+                            edgeLength: 150,
+                            gravity: 0.1
+                        } : undefined,
+                        edgeSymbol: ['none', 'arrow'],
+                        edgeSymbolSize: 10,
+                        edgeLabel: {
+                            fontSize: 12,
+                            color: '#666'
+                        }
+                    }
+                ]
+            };
+
+            // Tree layout specific options
+            if (currentLayout === 'tree') {
+                option.series[0].type = 'tree';
+                option.series[0].orient = 'TB';
+                option.series[0].top = '10%';
+                option.series[0].left = '10%';
+                option.series[0].right = '10%';
+                option.series[0].bottom = '10%';
+                option.series[0].symbol = 'emptyCircle';
+                option.series[0].symbolSize = 20;
+                option.series[0].initialTreeDepth = -1;
+                option.series[0].expandAndCollapse = true;
+                option.series[0].label = {
+                    position: 'top',
+                    verticalAlign: 'middle',
+                    align: 'center',
+                    fontSize: 14
+                };
+                option.series[0].leaves = {
+                    label: {
+                        position: 'bottom',
+                        verticalAlign: 'middle',
+                        align: 'center'
+                    }
+                };
+                
+                // Convert graph to tree structure
+                option.series[0].data = [convertToTree(graphData)];
+                delete option.series[0].links;
+                delete option.series[0].categories;
+            }
+
+            chartInstance.setOption(option, true);
+
+            // Add click event for node selection
+            chartInstance.off('click');
+            chartInstance.on('click', function(params) {
+                if (params.dataType === 'node') {
+                    selectedNode = params.data;
+                    showToast(`已选择节点: ${params.data.name}`);
+                }
+            });
+        }
+
+        // Convert graph to tree structure
+        function convertToTree(data) {
+            const nodeMap = {};
+            const rootNodes = [];
+            
+            // Create node map
+            data.nodes.forEach(node => {
+                nodeMap[node.id] = {
+                    name: node.name,
+                    value: node.value,
+                    category: node.category,
+                    desc: node.desc,
+                    itemStyle: {
+                        color: categoryConfig[node.category].color
+                    },
+                    children: []
+                };
+            });
+
+            // Build tree structure based on links
+            const childrenSet = new Set();
+            data.links.forEach(link => {
+                if (nodeMap[link.source] && nodeMap[link.target]) {
+                    nodeMap[link.source].children.push(nodeMap[link.target]);
+                    childrenSet.add(link.target);
+                }
+            });
+
+            // Find root nodes (nodes with no incoming edges)
+            data.nodes.forEach(node => {
+                if (!childrenSet.has(node.id)) {
+                    rootNodes.push(nodeMap[node.id]);
+                }
+            });
+
+            // If multiple roots, create a virtual root
+            if (rootNodes.length > 1) {
+                return {
+                    name: '根节点',
+                    children: rootNodes,
+                    itemStyle: { color: '#999' }
+                };
+            } else if (rootNodes.length === 1) {
+                return rootNodes[0];
+            } else {
+                return { name: '空', children: [] };
+            }
+        }
+
+        // Get category display name
+        function getCategoryName(category) {
+            const names = {
+                goal: '目标',
+                task: '任务',
+                milestone: '里程碑',
+                resource: '资源'
+            };
+            return names[category] || category;
+        }
+
+        // Toggle between graph and tree layout
+        function toggleLayout() {
+            currentLayout = currentLayout === 'force' ? 'tree' : 'force';
+            document.getElementById('layoutMode').textContent = 
+                currentLayout === 'force' ? '图结构' : '树结构';
+            updateChart();
+            showToast(`已切换到${currentLayout === 'force' ? '图' : '树'}结构`);
+        }
+
+        // Add node
+        function addNode() {
+            document.getElementById('nodeName').value = '';
+            document.getElementById('nodeCategory').value = 'task';
+            document.getElementById('nodeDesc').value = '';
+            openModal('addNodeModal');
+        }
+
+        function confirmAddNode() {
+            const name = document.getElementById('nodeName').value.trim();
+            const category = document.getElementById('nodeCategory').value;
+            const desc = document.getElementById('nodeDesc').value.trim();
+
+            if (!name) {
+                showToast('请输入节点名称', 'error');
+                return;
+            }
+
+            const newNode = {
+                id: Date.now().toString(),
+                name: name,
+                category: category,
+                value: 50,
+                x: Math.random() * 600 + 100,
+                y: Math.random() * 400 + 100,
+                desc: desc
+            };
+
+            graphData.nodes.push(newNode);
+            updateChart();
+            closeModal('addNodeModal');
+            showToast(`成功添加节点: ${name}`);
+        }
+
+        // Delete selected node
+        function deleteSelectedNode() {
+            if (!selectedNode) {
+                showToast('请先选择一个节点', 'error');
+                return;
+            }
+
+            if (confirm(`确定要删除节点 "${selectedNode.name}" 吗？`)) {
+                // Remove node
+                graphData.nodes = graphData.nodes.filter(n => n.id !== selectedNode.id);
+                // Remove related links
+                graphData.links = graphData.links.filter(
+                    l => l.source !== selectedNode.id && l.target !== selectedNode.id
+                );
+                
+                showToast(`已删除节点: ${selectedNode.name}`);
+                selectedNode = null;
+                updateChart();
+            }
+        }
+
+        // Edit selected node
+        function editSelectedNode() {
+            if (!selectedNode) {
+                showToast('请先选择一个节点', 'error');
+                return;
+            }
+
+            document.getElementById('editNodeName').value = selectedNode.name;
+            document.getElementById('editNodeCategory').value = selectedNode.category;
+            document.getElementById('editNodeDesc').value = selectedNode.desc || '';
+            openModal('editNodeModal');
+        }
+
+        function confirmEditNode() {
+            const name = document.getElementById('editNodeName').value.trim();
+            const category = document.getElementById('editNodeCategory').value;
+            const desc = document.getElementById('editNodeDesc').value.trim();
+
+            if (!name) {
+                showToast('请输入节点名称', 'error');
+                return;
+            }
+
+            const node = graphData.nodes.find(n => n.id === selectedNode.id);
+            if (node) {
+                node.name = name;
+                node.category = category;
+                node.desc = desc;
+                selectedNode = node;
+                updateChart();
+                closeModal('editNodeModal');
+                showToast(`成功更新节点: ${name}`);
+            }
+        }
+
+        // Add link
+        function addLink() {
+            if (graphData.nodes.length < 2) {
+                showToast('至少需要2个节点才能添加连接', 'error');
+                return;
+            }
+
+            // Populate select options
+            const sourceSelect = document.getElementById('linkSource');
+            const targetSelect = document.getElementById('linkTarget');
+            sourceSelect.innerHTML = '';
+            targetSelect.innerHTML = '';
+
+            graphData.nodes.forEach(node => {
+                sourceSelect.innerHTML += `<option value="${node.id}">${node.name}</option>`;
+                targetSelect.innerHTML += `<option value="${node.id}">${node.name}</option>`;
+            });
+
+            document.getElementById('linkLabel').value = '';
+            openModal('addLinkModal');
+        }
+
+        function confirmAddLink() {
+            const source = document.getElementById('linkSource').value;
+            const target = document.getElementById('linkTarget').value;
+            const label = document.getElementById('linkLabel').value.trim();
+
+            if (source === target) {
+                showToast('源节点和目标节点不能相同', 'error');
+                return;
+            }
+
+            // Check if link already exists
+            const exists = graphData.links.some(
+                l => l.source === source && l.target === target
+            );
+
+            if (exists) {
+                showToast('该连接已存在', 'error');
+                return;
+            }
+
+            graphData.links.push({
+                source: source,
+                target: target,
+                label: label || '关联'
+            });
+
+            updateChart();
+            closeModal('addLinkModal');
+            showToast('成功添加连接');
+        }
+
+        // Delete link
+        function deleteLink() {
+            if (graphData.links.length === 0) {
+                showToast('没有可删除的连接', 'error');
+                return;
+            }
+
+            const linkSelect = document.getElementById('linkToDelete');
+            linkSelect.innerHTML = '';
+
+            graphData.links.forEach((link, index) => {
+                const sourceName = graphData.nodes.find(n => n.id === link.source)?.name || link.source;
+                const targetName = graphData.nodes.find(n => n.id === link.target)?.name || link.target;
+                linkSelect.innerHTML += `<option value="${index}">${sourceName} → ${targetName} ${link.label ? '(' + link.label + ')' : ''}</option>`;
+            });
+
+            openModal('deleteLinkModal');
+        }
+
+        function confirmDeleteLink() {
+            const linkSelect = document.getElementById('linkToDelete');
+            const selectedIndex = linkSelect.value;
+
+            if (selectedIndex === null || selectedIndex === '') {
+                showToast('请选择要删除的连接', 'error');
+                return;
+            }
+
+            graphData.links.splice(parseInt(selectedIndex), 1);
+            updateChart();
+            closeModal('deleteLinkModal');
+            showToast('成功删除连接');
+        }
+
+        // Save data
+        function saveData() {
+            const dataStr = JSON.stringify(graphData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `goal-decomposition-${Date.now()}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            showToast('数据已保存');
+        }
+
+        // Load data
+        function loadData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        if (data.nodes && data.links) {
+                            graphData = data;
+                            selectedNode = null;
+                            updateChart();
+                            showToast('数据加载成功');
+                        } else {
+                            showToast('文件格式不正确', 'error');
+                        }
+                    } catch (error) {
+                        showToast('文件解析失败', 'error');
+                        console.error(error);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        // Export image
+        function exportImage() {
+            const url = chartInstance.getDataURL({
+                type: 'png',
+                pixelRatio: 2,
+                backgroundColor: '#fff'
+            });
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `goal-decomposition-${Date.now()}.png`;
+            link.click();
+            showToast('图片已导出');
+        }
+
+        // Modal functions
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        };
+
+        // Toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            toast.style.background = type === 'error' ? '#f5576c' : '#333';
+            
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        // Initialize on page load
+        window.onload = function() {
+            initChart();
+            
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                chartInstance.resize();
+            });
+        };
+    </script>
+</body>
+</html>
