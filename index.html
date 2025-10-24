@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>科研目标分解图工具</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>科研目标分解图工具</h1>
+            <div class="toolbar">
+                <button id="addNodeBtn" class="btn btn-primary">添加节点</button>
+                <button id="addEdgeBtn" class="btn btn-secondary">添加连线</button>
+                <button id="treeModeBtn" class="btn btn-info">树形模式</button>
+                <button id="graphModeBtn" class="btn btn-info">图形模式</button>
+                <button id="saveBtn" class="btn btn-success">保存</button>
+                <button id="loadBtn" class="btn btn-warning">加载</button>
+                <input type="file" id="fileInput" accept=".json" style="display: none;">
+                <button id="aiSuggestBtn" class="btn btn-ai">AI建议</button>
+                <button id="analyzeBtn" class="btn btn-info">图分析</button>
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="panel">
+                    <h3>节点属性</h3>
+                    <div id="nodeProperties" class="properties-panel">
+                        <p>选择一个节点来编辑属性</p>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <h3>AI建议</h3>
+                    <div id="aiSuggestions" class="ai-panel">
+                        <textarea id="aiInput" placeholder="描述您的目标或需求..."></textarea>
+                        <button id="generateSuggestion" class="btn btn-ai">生成建议</button>
+                        <div id="suggestionResult"></div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h3>图分析</h3>
+                    <div id="graphAnalysis" class="analysis-panel">
+                        <div id="analysisResult">
+                            <p>点击"图分析"按钮查看图结构分析结果</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="graph-container">
+                <div id="graphChart" class="chart"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 节点编辑模态框 -->
+    <div id="nodeModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>编辑节点</h2>
+            <form id="nodeForm">
+                <div class="form-group">
+                    <label for="nodeName">节点名称:</label>
+                    <input type="text" id="nodeName" required>
+                </div>
+                <div class="form-group">
+                    <label for="nodeType">节点类型:</label>
+                    <select id="nodeType">
+                        <option value="goal">目标</option>
+                        <option value="task">任务</option>
+                        <option value="requirement">需求</option>
+                        <option value="function">功能</option>
+                        <option value="page">页面</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="nodeDescription">描述:</label>
+                    <textarea id="nodeDescription" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="nodePriority">优先级:</label>
+                    <select id="nodePriority">
+                        <option value="high">高</option>
+                        <option value="medium">中</option>
+                        <option value="low">低</option>
+                    </select>
+                </div>
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-primary">保存</button>
+                    <button type="button" id="deleteNodeBtn" class="btn btn-danger">删除节点</button>
+                    <button type="button" id="cancelNodeBtn" class="btn btn-secondary">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
